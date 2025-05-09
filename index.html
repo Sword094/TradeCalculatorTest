@@ -176,22 +176,93 @@
   let activeBox = null;
 
   function fetchSheetData() {
-    fetch(sheetUrl)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.split("\n").slice(1);
-        pets = rows.map(row => {
-          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 2) return null;
-          const name = matches[0].replace(/^"|"$/g, '').trim();
-          const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
-          image = image.replace(/\s/g, "");
-          return { name, value, image };
-        }).filter(p => p && p.name);
-        buildPetGrids();
-      });
-  }
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(csv => {
+      const rows = csv.split("\n").slice(1);
+      pets = rows.map(row => {
+        const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+        if (!matches || matches.length < 9) return null;  // Expecting 9 columns
+        const name = matches[0].replace(/^"|"$/g, '').trim();
+        const valueNormal = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
+        const valueShiny = parseFloat(matches[2].replace(/^"|"$/g, '').trim()) || 0;
+        const valueMythic = parseFloat(matches[3].replace(/^"|"$/g, '').trim()) || 0;
+        const valueShinyMythic = parseFloat(matches[4].replace(/^"|"$/g, '').trim()) || 0;
+        const imageNormal = matches[5] ? matches[5].replace(/^"|"$/g, '').trim() : "";
+        const imageShiny = matches[6] ? matches[6].replace(/^"|"$/g, '').trim() : "";
+        const imageMythic = matches[7] ? matches[7].replace(/^"|"$/g, '').trim() : "";
+        const imageShinyMythic = matches[8] ? matches[8].replace(/^"|"$/g, '').trim() : "";
+
+        return { 
+          name, 
+          variants: {
+            normal: { value: valueNormal, image: imageNormal },
+            shiny: { value: valueShiny, image: imageShiny },
+            mythic: { value: valueMythic, image: imageMythic },
+            shinyMythic: { value: valueShinyMythic, image: imageShinyMythic }
+          }
+        };
+      }).filter(p => p && p.name);
+      buildPetGrids();
+    });
+}
+
+function buildPetGrids() {
+  ['a', 'b'].forEach(side => {
+    const grid = document.getElementById(`grid-${side}`);
+    for (let i = 0; i < 10; i++) {
+      const box = document.createElement("div");
+      box.className = "pet-slot";
+      box.innerHTML = `<span class="pet-name">+</span>`;
+      box.onclick = () => openModal(box, side);
+      grid.appendChild(box);
+    }
+  });
+}
+
+function openModal(box, side) {
+  activeBox = box;
+  const modal = document.getElementById("pet-modal");
+  modal.style.display = "block";
+  populateModal();
+}
+
+function populateModal() {
+  const container = document.getElementById("pet-options");
+  const searchQuery = document.getElementById("pet-search").value.toLowerCase();
+  container.innerHTML = "";
+
+  pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
+    const div = document.createElement("div");
+    div.className = "pet-option";
+    div.innerHTML = `
+      <div><strong>${pet.name}</strong></div>
+      <div>Select a variant:</div>
+      <button class="variant-btn" onclick="selectPet('${pet.name}', 'normal')">Normal</button>
+      <button class="variant-btn" onclick="selectPet('${pet.name}', 'shiny')">Shiny</button>
+      <button class="variant-btn" onclick="selectPet('${pet.name}', 'mythic')">Mythic</button>
+      <button class="variant-btn" onclick="selectPet('${pet.name}', 'shinyMythic')">Shiny Mythic</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function selectPet(name, variant) {
+  const pet = pets.find(p => p.name === name);
+  const variantData = pet.variants[variant];
+  if (!activeBox) return;
+  
+  activeBox.innerHTML = `
+    <div class="pet-name">${name}<br><small>${variantData.value}</small></div>
+    <img src="${variantData.image}" class="pet-image"/>
+    <button class="remove-btn" onclick="removePet(this)">✖</button>
+  `;
+  activeBox.setAttribute("data-value", variantData.value);
+  activeBox.setAttribute("data-variant", variant);
+  updateTotals();
+  closeModal();
+}
+
 
   function buildPetGrids() {
     ['a', 'b'].forEach(side => {
