@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pet Trade Calculator</title>
   <style>
     body {
+      margin: 0;
       background-color: #000;
       color: #FFA500;
       font-family: 'Funnel Display', sans-serif;
@@ -13,245 +15,195 @@
     .trade-container {
       display: flex;
       justify-content: space-around;
-      padding: 20px;
+      padding: 40px 20px;
+      gap: 40px;
+      flex-wrap: wrap;
     }
 
-    .player-section {
-      background: #111;
-      padding: 20px;
-      border-radius: 15px;
+    .player {
       width: 45%;
-    }
-
-    .player-section h2 {
-      text-align: center;
     }
 
     .pet-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-top: 10px;
+      gap: 15px;
     }
 
     .pet-slot {
       width: 100%;
       aspect-ratio: 1 / 1;
-      border: 2px dashed #FFA500;
       border-radius: 15px;
       background-color: #222;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 24px;
+      font-size: 32px;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
     }
 
-    .pet-slot img {
-      max-width: 80%;
-      max-height: 80%;
-      object-fit: contain;
-    }
-
-    .summary {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    .reset-btn {
-      background: #FFA500;
-      border: none;
-      padding: 8px 15px;
-      margin-top: 10px;
+    .pet-slot::before {
+      content: "";
+      position: absolute;
+      top: -5px; bottom: -5px; left: -5px; right: -5px;
       border-radius: 20px;
-      cursor: pointer;
-      color: black;
-      font-weight: bold;
+      background: radial-gradient(circle, rgba(255,165,0,0.4) 0%, transparent 70%);
+      z-index: 0;
+      transition: opacity 0.3s ease;
+      opacity: 0.5;
+    }
+
+    .pet-slot:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+    }
+
+    .pet-slot:hover::before {
+      opacity: 1;
     }
 
     .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+      padding: 40px 20px;
     }
 
     .modal-content {
-      background: #111;
+      background-color: #111;
+      margin: auto;
       padding: 20px;
       border-radius: 15px;
-      max-height: 80%;
-      overflow-y: auto;
-      width: 80%;
+      max-width: 600px;
     }
 
     .pet-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       padding: 10px;
-      border-bottom: 1px solid #333;
+      margin: 5px 0;
+      background-color: #222;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .pet-option img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 2px solid #FFA500;
+    .pet-option:hover {
+      background-color: #333;
+    }
+
+    .modal h3 {
+      margin-top: 0;
     }
 
     .close-btn {
       float: right;
-      color: #FFA500;
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
+      color: #FFA500;
+    }
+
+    .pet-name {
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-
-<div id="trade-calculator">
   <div class="trade-container">
-    <!-- PLAYER A -->
-    <div class="player-section" id="player-a">
+    <div class="player" id="player-a">
       <h2>Player A</h2>
       <div class="pet-grid" id="grid-a"></div>
-      <div class="summary">
-        Total: <span id="total-a">0</span>
-        <button class="reset-btn" onclick="resetPlayer('a')">Reset</button>
-      </div>
     </div>
-
-    <!-- PLAYER B -->
-    <div class="player-section" id="player-b">
+    <div class="player" id="player-b">
       <h2>Player B</h2>
       <div class="pet-grid" id="grid-b"></div>
-      <div class="summary">
-        Total: <span id="total-b">0</span>
-        <button class="reset-btn" onclick="resetPlayer('b')">Reset</button>
-      </div>
     </div>
   </div>
-</div>
 
-<!-- Modal -->
-<div class="modal" id="pet-modal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">✖</span>
-    <div id="modal-options"></div>
+  <div class="modal" id="pet-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h3>Select a Pet</h3>
+      <div id="modal-pet-list"></div>
+    </div>
   </div>
-</div>
 
-<script>
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+    let pets = [];
+    let activeBox = null;
 
-  const defaultImage = "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+    function fetchPets() {
+      fetch(sheetUrl)
+        .then(res => res.text())
+        .then(csv => {
+          const rows = csv.split("\n").slice(1);
+          pets = rows.map(row => {
+            const cols = row.split(",");
+            const name = cols[0]?.trim();
+            const value = parseFloat(cols[1]);
+            const image = cols[2]?.trim() || "";
+            return { name, value, image };
+          }).filter(p => p.name && !isNaN(p.value));
 
-  let pets = [];
-  const playerData = { a: Array(10).fill(null), b: Array(10).fill(null) };
-  let currentSlot = { side: null, index: null };
+          renderPetModal();
+        });
+    }
 
-  function fetchSheetData() {
-    fetch(sheetUrl)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.split("\n").slice(1);
-        pets = rows.map(row => {
-          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 2) return null;
-
-          const name = matches[0]?.replace(/^"|"$/g, '').trim();
-          const value = parseFloat(matches[1]?.replace(/^"|"$/g, '').trim()) || 0;
-          let image = matches[2]?.replace(/^"|"$/g, '').trim() || "";
-          image = image || defaultImage;
-
-          return { name, value, image };
-        }).filter(p => p && p.name && !isNaN(p.value));
-        renderGrids();
-      });
-  }
-
-  function renderGrids() {
-    ['a', 'b'].forEach(side => {
+    function renderGrid(side) {
       const grid = document.getElementById(`grid-${side}`);
       grid.innerHTML = "";
       for (let i = 0; i < 10; i++) {
-        const slot = playerData[side][i];
-        const div = document.createElement("div");
-        div.className = "pet-slot";
-        div.onclick = () => openModal(side, i);
-
-        if (slot) {
-          const img = document.createElement("img");
-          img.src = slot.image || defaultImage;
-          img.alt = slot.name;
-          div.appendChild(img);
-        } else {
-          div.textContent = "+";
-        }
-
-        grid.appendChild(div);
+        const box = document.createElement("div");
+        box.className = "pet-slot";
+        box.innerHTML = `<span class="pet-name">+</span>`;
+        box.dataset.side = side;
+        box.dataset.index = i;
+        box.onclick = () => openModal(box);
+        grid.appendChild(box);
       }
-      updateTotal(side);
-    });
-  }
+    }
 
-  function openModal(side, index) {
-    currentSlot = { side, index };
-    const modal = document.getElementById("pet-modal");
-    const options = document.getElementById("modal-options");
-    options.innerHTML = "";
+    function renderPetModal() {
+      const container = document.getElementById("modal-pet-list");
+      container.innerHTML = "";
+      pets.forEach(pet => {
+        const div = document.createElement("div");
+        div.className = "pet-option";
+        div.textContent = `${pet.name} (${pet.value})`;
+        div.onclick = () => selectPet(pet);
+        container.appendChild(div);
+      });
+    }
 
-    pets.forEach(p => {
-      const option = document.createElement("div");
-      option.className = "pet-option";
-      option.onclick = () => selectPet(p);
+    function openModal(box) {
+      activeBox = box;
+      document.getElementById("pet-modal").style.display = "block";
+    }
 
-      const img = document.createElement("img");
-      img.src = p.image || defaultImage;
+    function closeModal() {
+      activeBox = null;
+      document.getElementById("pet-modal").style.display = "none";
+    }
 
-      const label = document.createElement("span");
-      label.textContent = `${p.name} (${p.value})`;
+    function selectPet(pet) {
+      if (!activeBox) return;
+      activeBox.innerHTML = `
+        <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+      `;
+      closeModal();
+    }
 
-      option.appendChild(img);
-      option.appendChild(label);
-      options.appendChild(option);
-    });
-
-    modal.style.display = "flex";
-  }
-
-  function selectPet(pet) {
-    const { side, index } = currentSlot;
-    playerData[side][index] = pet;
-    closeModal();
-    renderGrids();
-  }
-
-  function closeModal() {
-    document.getElementById("pet-modal").style.display = "none";
-  }
-
-  function resetPlayer(side) {
-    playerData[side] = Array(10).fill(null);
-    renderGrids();
-  }
-
-  function updateTotal(side) {
-    const total = playerData[side].reduce((sum, pet) => {
-      return sum + (pet ? pet.value : 0);
-    }, 0);
-    document.getElementById(`total-${side}`).textContent = total;
-  }
-
-  fetchSheetData();
-</script>
-
+    // Initialize
+    fetchPets();
+    renderGrid("a");
+    renderGrid("b");
+  </script>
 </body>
 </html>
