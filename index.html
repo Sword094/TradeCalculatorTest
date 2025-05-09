@@ -4,20 +4,14 @@
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
       <div class="pet-grid" id="grid-a"></div>
-      <div class="summary">
-        Total: <span id="total-a">0</span>
-        <button class="reset-btn" onclick="resetSide('a')">Reset</button>
-      </div>
+      <div class="summary">Total: <span id="total-a">0</span></div>
     </div>
 
     <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
       <div class="pet-grid" id="grid-b"></div>
-      <div class="summary">
-        Total: <span id="total-b">0</span>
-        <button class="reset-btn" onclick="resetSide('b')">Reset</button>
-      </div>
+      <div class="summary">Total: <span id="total-b">0</span></div>
     </div>
   </div>
 
@@ -77,21 +71,6 @@
     margin-top: 15px;
     font-size: 18px;
     font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .reset-btn {
-    background: #ff4040;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .reset-btn:hover {
-    background: #d72c2c;
   }
 
   .modal {
@@ -170,99 +149,29 @@
     cursor: pointer;
   }
 </style>
+
 <script>
   const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
   let pets = [];
   let activeBox = null;
 
   function fetchSheetData() {
-  fetch(sheetUrl)
-    .then(res => res.text())
-    .then(csv => {
-      const rows = csv.split("\n").slice(1);
-      pets = rows.map(row => {
-        const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        if (!matches || matches.length < 9) return null;  // Expecting 9 columns
-        const name = matches[0].replace(/^"|"$/g, '').trim();
-        const valueNormal = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-        const valueShiny = parseFloat(matches[2].replace(/^"|"$/g, '').trim()) || 0;
-        const valueMythic = parseFloat(matches[3].replace(/^"|"$/g, '').trim()) || 0;
-        const valueShinyMythic = parseFloat(matches[4].replace(/^"|"$/g, '').trim()) || 0;
-        const imageNormal = matches[5] ? matches[5].replace(/^"|"$/g, '').trim() : "";
-        const imageShiny = matches[6] ? matches[6].replace(/^"|"$/g, '').trim() : "";
-        const imageMythic = matches[7] ? matches[7].replace(/^"|"$/g, '').trim() : "";
-        const imageShinyMythic = matches[8] ? matches[8].replace(/^"|"$/g, '').trim() : "";
-
-        return { 
-          name, 
-          variants: {
-            normal: { value: valueNormal, image: imageNormal },
-            shiny: { value: valueShiny, image: imageShiny },
-            mythic: { value: valueMythic, image: imageMythic },
-            shinyMythic: { value: valueShinyMythic, image: imageShinyMythic }
-          }
-        };
-      }).filter(p => p && p.name);
-      buildPetGrids();
-    });
-}
-
-function buildPetGrids() {
-  ['a', 'b'].forEach(side => {
-    const grid = document.getElementById(`grid-${side}`);
-    for (let i = 0; i < 10; i++) {
-      const box = document.createElement("div");
-      box.className = "pet-slot";
-      box.innerHTML = `<span class="pet-name">+</span>`;
-      box.onclick = () => openModal(box, side);
-      grid.appendChild(box);
-    }
-  });
-}
-
-function openModal(box, side) {
-  activeBox = box;
-  const modal = document.getElementById("pet-modal");
-  modal.style.display = "block";
-  populateModal();
-}
-
-function populateModal() {
-  const container = document.getElementById("pet-options");
-  const searchQuery = document.getElementById("pet-search").value.toLowerCase();
-  container.innerHTML = "";
-
-  pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
-    const div = document.createElement("div");
-    div.className = "pet-option";
-    div.innerHTML = `
-      <div><strong>${pet.name}</strong></div>
-      <div>Select a variant:</div>
-      <button class="variant-btn" onclick="selectPet('${pet.name}', 'normal')">Normal</button>
-      <button class="variant-btn" onclick="selectPet('${pet.name}', 'shiny')">Shiny</button>
-      <button class="variant-btn" onclick="selectPet('${pet.name}', 'mythic')">Mythic</button>
-      <button class="variant-btn" onclick="selectPet('${pet.name}', 'shinyMythic')">Shiny Mythic</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function selectPet(name, variant) {
-  const pet = pets.find(p => p.name === name);
-  const variantData = pet.variants[variant];
-  if (!activeBox) return;
-  
-  activeBox.innerHTML = `
-    <div class="pet-name">${name}<br><small>${variantData.value}</small></div>
-    <img src="${variantData.image}" class="pet-image"/>
-    <button class="remove-btn" onclick="removePet(this)">✖</button>
-  `;
-  activeBox.setAttribute("data-value", variantData.value);
-  activeBox.setAttribute("data-variant", variant);
-  updateTotals();
-  closeModal();
-}
-
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.split("\n").slice(1);
+        pets = rows.map(row => {
+          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+          if (!matches || matches.length < 2) return null;
+          const name = matches[0].replace(/^"|"$/g, '').trim();
+          const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
+          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+          image = image.replace(/\s/g, "");
+          return { name, value, image };
+        }).filter(p => p && p.name);
+        buildPetGrids();
+      });
+  }
 
   function buildPetGrids() {
     ['a', 'b'].forEach(side => {
@@ -306,36 +215,21 @@ function selectPet(name, variant) {
   }
 
   function selectPet(pet) {
-  if (!activeBox) return;
-  
-  // If there is an image URL, use it; otherwise, use a placeholder
-  const imageUrl = pet.image ? `<img src="${pet.image}" alt="${pet.name}" style="width: 100%; height: auto; border-radius: 10px;"/>` : '';
-  
-  activeBox.innerHTML = `
-    ${imageUrl}
-    <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
-    <button class="remove-btn" onclick="removePet(this, event)">✖</button>
-  `;
-  activeBox.setAttribute("data-value", pet.value);
-  updateTotals();
-  closeModal();
-}
-
+    if (!activeBox) return;
+    activeBox.innerHTML = ` 
+      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+      <button class="remove-btn" onclick="removePet(this, event)">✖</button>
+    `;
+    activeBox.setAttribute("data-value", pet.value);
+    updateTotals();
+    closeModal();
+  }
 
   function removePet(button, event) {
     event.stopPropagation(); // Prevent the modal from opening
     const box = button.closest(".pet-slot");
     box.innerHTML = `<span class="pet-name">+</span>`;
     box.removeAttribute("data-value");
-    updateTotals();
-  }
-
-  function resetSide(side) {
-    const grid = document.getElementById(`grid-${side}`);
-    grid.querySelectorAll(".pet-slot").forEach(slot => {
-      slot.innerHTML = `<span class="pet-name">+</span>`;
-      slot.removeAttribute("data-value");
-    });
     updateTotals();
   }
 
