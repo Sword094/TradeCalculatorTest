@@ -243,18 +243,20 @@
     });
   }
 
-  function showVariantModal(pet) {
-    const container = document.getElementById("variant-options");
-    container.innerHTML = "";
+function showVariantModal(pet) {
+  const container = document.getElementById("variant-options");
+  container.innerHTML = "";
 
-    const variants = [
-      { name: "Normal", value: pet.normal },
-      { name: "Shiny", value: pet.shiny },
-      { name: "Mythic", value: pet.mythic },
-      { name: "Shiny Mythic", value: pet.shinyMythic }
-    ];
+  const variants = [
+    { name: "Normal", value: pet.normal },
+    { name: "Shiny", value: pet.shiny },
+    { name: "Mythic", value: pet.mythic },
+    { name: "Shiny Mythic", value: pet.shinyMythic }
+  ];
 
-    variants.forEach(variant => {
+  variants
+    .filter(v => v.value > 0)
+    .forEach(variant => {
       const div = document.createElement("div");
       div.className = "variant-option";
       div.textContent = `${variant.name}: ${variant.value}`;
@@ -265,8 +267,9 @@
       container.appendChild(div);
     });
 
-    document.getElementById("variant-modal").style.display = "block";
-  }
+  document.getElementById("variant-modal").style.display = "block";
+}
+
 
   function assignPetWithVariant(pet, variant) {
     if (!activeBox) return;
