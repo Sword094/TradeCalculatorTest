@@ -189,13 +189,13 @@
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
           let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
-          
-          // Shift variant columns properly:
-          const normal = parseFloat(matches[3]?.replace(/^"|"$/g, '').trim()) || 0;
-          const shiny = parseFloat(matches[4]?.replace(/^"|"$/g, '').trim()) || 0;
-          const mythic = parseFloat(matches[5]?.replace(/^"|"$/g, '').trim()) || 0;
-          const shinyMythic = parseFloat(matches[6]?.replace(/^"|"$/g, '').trim()) || 0;
-          
+
+          // Set variant columns correctly
+          const normal = parseFloat(matches[1]?.replace(/^"|"$/g, '').trim()) || 0;
+          const shiny = parseFloat(matches[2]?.replace(/^"|"$/g, '').trim()) || 0;
+          const mythic = parseFloat(matches[3]?.replace(/^"|"$/g, '').trim()) || 0;
+          const shinyMythic = parseFloat(matches[4]?.replace(/^"|"$/g, '').trim()) || 0;
+
           return { name, value, image, normal, shiny, mythic, shinyMythic };
         }).filter(p => p && p.name);
         buildPetGrids();
