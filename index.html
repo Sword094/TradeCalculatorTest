@@ -4,14 +4,20 @@
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
       <div class="pet-grid" id="grid-a"></div>
-      <div class="summary">Total: <span id="total-a">0</span></div>
+      <div class="summary">
+        Total: <span id="total-a">0</span>
+        <button class="reset-btn" onclick="resetSide('a')">Reset</button>
+      </div>
     </div>
 
     <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
       <div class="pet-grid" id="grid-b"></div>
-      <div class="summary">Total: <span id="total-b">0</span></div>
+      <div class="summary">
+        Total: <span id="total-b">0</span>
+        <button class="reset-btn" onclick="resetSide('b')">Reset</button>
+      </div>
     </div>
   </div>
 
@@ -71,6 +77,21 @@
     margin-top: 15px;
     font-size: 18px;
     font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .reset-btn {
+    background: #ff4040;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .reset-btn:hover {
+    background: #d72c2c;
   }
 
   .modal {
@@ -149,7 +170,6 @@
     cursor: pointer;
   }
 </style>
-
 <script>
   const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
   let pets = [];
@@ -230,6 +250,15 @@
     const box = button.closest(".pet-slot");
     box.innerHTML = `<span class="pet-name">+</span>`;
     box.removeAttribute("data-value");
+    updateTotals();
+  }
+
+  function resetSide(side) {
+    const grid = document.getElementById(`grid-${side}`);
+    grid.querySelectorAll(".pet-slot").forEach(slot => {
+      slot.innerHTML = `<span class="pet-name">+</span>`;
+      slot.removeAttribute("data-value");
+    });
     updateTotals();
   }
 
