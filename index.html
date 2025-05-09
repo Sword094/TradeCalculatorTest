@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <!-- Pet Modal -->
+  <!-- Modal -->
   <div id="pet-modal" class="modal">
     <div class="modal-content">
       <input type="text" id="pet-search" placeholder="Search pets..." />
@@ -129,17 +129,16 @@
 
   .variant-option {
     background: #222;
-    padding: 10px 15px;
+    padding: 10px;
     border-radius: 10px;
     cursor: pointer;
-    transition: transform 0.2s;
-    margin: 5px;
-    color: #FFA500;
     text-align: center;
+    transition: transform 0.2s;
+    color: #FFA500;
   }
   .variant-option:hover {
     background: #333;
-    transform: scale(1.05);
+    transform: scale(1.03);
   }
 
   .remove-btn {
@@ -177,7 +176,6 @@
   const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
   let pets = [];
   let activeBox = null;
-  let selectedPet = null;
 
   function fetchSheetData() {
     fetch(sheetUrl)
@@ -186,16 +184,19 @@
         const rows = csv.split("\n").slice(1);
         pets = rows.map(row => {
           const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 5) return null;
+          if (!matches || matches.length < 2) return null;
           const name = matches[0].replace(/^"|"$/g, '').trim();
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-          const normal = parseFloat(matches[2].replace(/^"|"$/g, '').trim()) || 0;
-          const shiny = parseFloat(matches[3].replace(/^"|"$/g, '').trim()) || 0;
-          const mythic = parseFloat(matches[4].replace(/^"|"$/g, '').trim()) || 0;
-          const shinyMythic = parseFloat(matches[5].replace(/^"|"$/g, '').trim()) || 0;
-          let image = matches[6] ? matches[6].replace(/^"|"$/g, '').trim() : "";
+          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
-          return { name, value, normal, shiny, mythic, shinyMythic, image };
+          
+          // Accessing variant columns
+          const normal = parseFloat(matches[3]?.replace(/^"|"$/g, '').trim()) || 0;
+          const shiny = parseFloat(matches[4]?.replace(/^"|"$/g, '').trim()) || 0;
+          const mythic = parseFloat(matches[5]?.replace(/^"|"$/g, '').trim()) || 0;
+          const shinyMythic = parseFloat(matches[6]?.replace(/^"|"$/g, '').trim()) || 0;
+          
+          return { name, value, image, normal, shiny, mythic, shinyMythic };
         }).filter(p => p && p.name);
         buildPetGrids();
       });
@@ -237,41 +238,8 @@
         <div><strong>${pet.name}</strong></div>
         <div>${pet.value}</div>
       `;
-      div.onclick = () => selectPet(pet);
+      div.onclick = () => showVariantModal(pet);
       container.appendChild(div);
-    });
-  }
-
-  function selectPet(pet) {
-    selectedPet = pet;
-    if (!activeBox) return;
-    activeBox.innerHTML = ` 
-      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
-      <button class="remove-btn" onclick="removePet(this, event)">✖</button>
-    `;
-    activeBox.setAttribute("data-value", pet.value);
-    updateTotals();
-    closeModal();
-    showVariantModal(pet); // Show the variants modal after selecting the pet
-  }
-
-  function removePet(button, event) {
-    event.stopPropagation(); // Prevent the modal from opening
-    const box = button.closest(".pet-slot");
-    box.innerHTML = `<span class="pet-name">+</span>`;
-    box.removeAttribute("data-value");
-    updateTotals();
-  }
-
-  function updateTotals() {
-    ['a', 'b'].forEach(side => {
-      const grid = document.getElementById(`grid-${side}`);
-      let total = 0;
-      grid.querySelectorAll(".pet-slot").forEach(slot => {
-        const val = parseFloat(slot.getAttribute("data-value"));
-        if (!isNaN(val)) total += val;
-      });
-      document.getElementById(`total-${side}`).textContent = total;
     });
   }
 
@@ -300,17 +268,38 @@
     document.getElementById("variant-modal").style.display = "block";
   }
 
-  function closeVariantModal() {
-    document.getElementById("variant-modal").style.display = "none";
-  }
-
   function assignPetWithVariant(pet, variant) {
+    if (!activeBox) return;
     activeBox.innerHTML = ` 
       <div class="pet-name">${pet.name} (${variant.name})<br><small>${variant.value}</small></div>
       <button class="remove-btn" onclick="removePet(this, event)">✖</button>
     `;
     activeBox.setAttribute("data-value", variant.value);
     updateTotals();
+  }
+
+  function closeVariantModal() {
+    document.getElementById("variant-modal").style.display = "none";
+  }
+
+  function removePet(button, event) {
+    event.stopPropagation(); // Prevent the modal from opening
+    const box = button.closest(".pet-slot");
+    box.innerHTML = `<span class="pet-name">+</span>`;
+    box.removeAttribute("data-value");
+    updateTotals();
+  }
+
+  function updateTotals() {
+    ['a', 'b'].forEach(side => {
+      const grid = document.getElementById(`grid-${side}`);
+      let total = 0;
+      grid.querySelectorAll(".pet-slot").forEach(slot => {
+        const val = parseFloat(slot.getAttribute("data-value"));
+        if (!isNaN(val)) total += val;
+      });
+      document.getElementById(`total-${side}`).textContent = total;
+    });
   }
 
   document.getElementById("pet-search").addEventListener("input", populateModal);
