@@ -1,231 +1,266 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Pet Trade Calculator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Funnel+Display&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-color: #000;
-      color: #FFA500;
-      font-family: 'Funnel Display', sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .trade-container {
-      display: flex;
-      justify-content: space-around;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    .player-section {
-      background: #111;
-      padding: 20px;
-      border-radius: 15px;
-      width: 45%;
-    }
-    .player-section h2 {
-      margin-top: 0;
-    }
-    .pet-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .pet-slot {
-      width: 100%;
-      padding-top: 100%;
-      position: relative;
-      border-radius: 15px;
-      background: #222;
-      box-shadow: 0 0 10px 2px #ffa50066;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.3s ease-in-out;
-    }
-    .pet-slot:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px 5px #ffa500aa;
-    }
-    .pet-slot .pet-name,
-    .pet-slot img,
-    .remove-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .pet-slot .pet-name {
-      color: #FFA500;
-      font-size: 1.2em;
-    }
-    .pet-slot img {
-      max-width: 80%;
-      max-height: 80%;
-      border-radius: 10px;
-    }
-    .remove-btn {
-      top: 5px;
-      right: 5px;
-      left: auto;
-      transform: none;
-      background: #FFA500;
-      border: none;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-weight: bold;
-      color: black;
-      cursor: pointer;
-    }
-    .total-value {
-      margin-top: 10px;
-      font-size: 1.2em;
-    }
-    #pet-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #pet-modal .modal-content {
-      background: #111;
-      padding: 20px;
-      border-radius: 10px;
-      max-height: 80%;
-      overflow-y: auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 10px;
-    }
-    #pet-modal .modal-content div {
-      text-align: center;
-      cursor: pointer;
-      background: #222;
-      padding: 10px;
-      border-radius: 10px;
-      color: #FFA500;
-    }
-    #pet-modal .modal-content div:hover {
-      background: #333;
-    }
-  </style>
-</head>
-<body>
+<div id="trade-calculator" style="font-family: 'Funnel Display', sans-serif;">
   <div class="trade-container">
+    <!-- PLAYER A -->
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
-      <div class="pet-grid" id="grid-a"></div>
-      <div class="total-value">Total: <span id="total-a">0</span></div>
+      <div class="pet-boxes" id="boxes-a"></div>
+      <div class="total">Total: <span id="total-a">0</span></div>
     </div>
+
+    <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
-      <div class="pet-grid" id="grid-b"></div>
-      <div class="total-value">Total: <span id="total-b">0</span></div>
+      <div class="pet-boxes" id="boxes-b"></div>
+      <div class="total">Total: <span id="total-b">0</span></div>
     </div>
   </div>
 
-  <div id="pet-modal">
-    <div class="modal-content" id="pet-options"></div>
+  <!-- Popup Modal -->
+  <div class="pet-modal" id="pet-modal">
+    <div class="modal-content">
+      <input type="text" id="modal-search" placeholder="Search for pet..." />
+      <div class="pet-list" id="pet-list"></div>
+      <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
   </div>
+</div>
 
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
-    const pets = [];
-    const playerData = { a: Array(10).fill(null), b: Array(10).fill(null) };
-    let selectedSlot = null;
+<style>
+  body {
+    background-color: #000;
+    color: #FFA500;
+  }
+  .trade-container {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+  }
+  .player-section {
+    background: #111;
+    padding: 20px;
+    border-radius: 15px;
+    width: 45%;
+    position: relative;
+  }
+  .pet-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pet-slot {
+    width: calc(50% - 10px);
+    height: 60px;
+    background: #222;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 8px #000;
+  }
+  .pet-slot:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px 4px #FFA500aa;
+  }
+  .pet-slot img {
+    height: 40px;
+    width: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  .remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #FFA500;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .total {
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 18px;
+  }
 
-    function fetchSheetData() {
-      fetch(sheetUrl)
-        .then(res => res.text())
-        .then(csv => {
-          const rows = csv.split("\n").slice(1);
-          rows.forEach(row => {
-            const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-            if (!matches || matches.length < 2) return;
-            const name = matches[0].replace(/^"|"$/g, '').trim();
-            const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-            const image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
-            pets.push({ name, value, image });
-          });
-          renderPetModal();
-        });
-    }
+  /* Modal styles */
+  .pet-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .modal-content {
+    background: #111;
+    padding: 20px;
+    border-radius: 15px;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    text-align: center;
+  }
+  #modal-search {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+    background: #222;
+    color: #FFA500;
+    font-size: 16px;
+  }
+  .pet-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .pet-item {
+    width: 160px;
+    background: #222;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .pet-item:hover {
+    transform: scale(1.05);
+    background-color: #333;
+  }
+  .pet-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #FFA500;
+    margin-bottom: 5px;
+  }
+  .close-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #FFA500;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+</style>
 
-    function renderPetModal() {
-      const container = document.getElementById("pet-options");
-      pets.forEach(pet => {
-        const div = document.createElement("div");
-        div.innerHTML = `<div>${pet.name}</div>`;
-        div.onclick = () => {
-          if (!selectedSlot) return;
-          const [side, index] = selectedSlot.split("-");
-          playerData[side][index] = pet;
-          updateGrids();
-          closeModal();
-        };
-        container.appendChild(div);
-      });
-    }
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
 
-    function openModal(slotId) {
-      selectedSlot = slotId;
-      document.getElementById("pet-modal").style.display = "flex";
-    }
+let pets = [];
+const playerPets = { a: Array(10).fill(null), b: Array(10).fill(null) };
+let currentSide = null;
+let currentIndex = null;
 
-    function closeModal() {
-      selectedSlot = null;
-      document.getElementById("pet-modal").style.display = "none";
-    }
+function fetchSheetData() {
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(csv => {
+      const rows = csv.split("\n").slice(1);
+      pets = rows.map(row => {
+        const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+        if (!matches || matches.length < 2) return null;
+        const name = matches[0]?.replace(/^"|"$/g, '').trim();
+        const value = parseFloat(matches[1]?.replace(/^"|"$/g, '').trim()) || 0;
+        let image = matches[2] ? matches[2].replace(/\s/g, '') : "";
+        return { name, value, image };
+      }).filter(p => p && p.name && !isNaN(p.value));
+      updateUI();
+    });
+}
 
-    function updateGrids() {
-      ["a", "b"].forEach(side => {
-        const grid = document.getElementById(`grid-${side}`);
-        grid.innerHTML = "";
-        playerData[side].forEach((pet, i) => {
-          const box = document.createElement("div");
-          box.className = "pet-slot";
-          box.id = `${side}-${i}`;
-          box.onclick = () => { if (!pet) openModal(`${side}-${i}`); };
+function updateUI() {
+  ['a', 'b'].forEach(side => {
+    const container = document.getElementById(`boxes-${side}`);
+    container.innerHTML = "";
+    playerPets[side].forEach((pet, index) => {
+      const div = document.createElement("div");
+      div.className = "pet-slot";
+      div.onclick = (e) => {
+        if (pet) {
+          if (e.target.classList.contains('remove-btn')) return;
+          removePet(side, index);
+        } else {
+          openModal(side, index);
+        }
+      };
 
-          if (pet) {
-            box.innerHTML = `
-              <img src="${pet.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${pet.name}">
-              <span class="pet-name">${pet.name}</span>
-              <button class="remove-btn" onclick="removePet(event, this)">✖</button>
-            `;
-          } else {
-            box.innerHTML = `<span class="pet-name">+</span>`;
-          }
-          grid.appendChild(box);
-        });
-        updateTotals();
-      });
-    }
+      if (pet) {
+        div.innerHTML = `
+          <img src="${pet.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${pet.name}">
+          <div>${pet.name}<br><small>${pet.value}</small></div>
+          <button class="remove-btn" onclick="removePet('${side}', ${index}); event.stopPropagation();">×</button>
+        `;
+      } else {
+        div.textContent = "+";
+        div.style.fontSize = "24px";
+        div.style.color = "#FFA500";
+      }
 
-    function removePet(event, btn) {
-      event.stopPropagation();
-      const box = btn.closest(".pet-slot");
-      const [side, index] = box.id.split("-");
-      playerData[side][index] = null;
-      updateGrids();
-    }
+      container.appendChild(div);
+    });
 
-    function updateTotals() {
-      ["a", "b"].forEach(side => {
-        const total = playerData[side].reduce((sum, pet) => sum + (pet ? pet.value : 0), 0);
-        document.getElementById(`total-${side}`).textContent = total;
-      });
-    }
+    const total = playerPets[side].reduce((sum, p) => sum + (p ? p.value : 0), 0);
+    document.getElementById(`total-${side}`).textContent = total;
+  });
+}
 
-    fetchSheetData();
-    updateGrids();
-  </script>
-</body>
-</html>
+function openModal(side, index) {
+  currentSide = side;
+  currentIndex = index;
+  document.getElementById("modal-search").value = "";
+  filterPets();
+  document.getElementById("pet-modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("pet-modal").style.display = "none";
+}
+
+function filterPets() {
+  const search = document.getElementById("modal-search").value.toLowerCase();
+  const list = document.getElementById("pet-list");
+  list.innerHTML = "";
+
+  pets.filter(p => p.name.toLowerCase().includes(search)).forEach(p => {
+    const item = document.createElement("div");
+    item.className = "pet-item";
+    item.innerHTML = `
+      <img src="${p.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${p.name}">
+      <div><strong>${p.name}</strong></div>
+      <div>${p.value}</div>
+    `;
+    item.onclick = () => {
+      playerPets[currentSide][currentIndex] = p;
+      closeModal();
+      updateUI();
+    };
+    list.appendChild(item);
+  });
+}
+
+function removePet(side, index) {
+  playerPets[side][index] = null;
+  updateUI();
+}
+
+document.getElementById("modal-search").addEventListener("input", filterPets);
+
+fetchSheetData();
+</script>
