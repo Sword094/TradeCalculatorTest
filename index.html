@@ -1,247 +1,231 @@
-<div id="trade-calculator" style="font-family: 'Funnel Display', sans-serif;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pet Trade Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Display&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #FFA500;
+      font-family: 'Funnel Display', sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .trade-container {
+      display: flex;
+      justify-content: space-around;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .player-section {
+      background: #111;
+      padding: 20px;
+      border-radius: 15px;
+      width: 45%;
+    }
+    .player-section h2 {
+      margin-top: 0;
+    }
+    .pet-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .pet-slot {
+      width: 100%;
+      padding-top: 100%;
+      position: relative;
+      border-radius: 15px;
+      background: #222;
+      box-shadow: 0 0 10px 2px #ffa50066;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s ease-in-out;
+    }
+    .pet-slot:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px 5px #ffa500aa;
+    }
+    .pet-slot .pet-name,
+    .pet-slot img,
+    .remove-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .pet-slot .pet-name {
+      color: #FFA500;
+      font-size: 1.2em;
+    }
+    .pet-slot img {
+      max-width: 80%;
+      max-height: 80%;
+      border-radius: 10px;
+    }
+    .remove-btn {
+      top: 5px;
+      right: 5px;
+      left: auto;
+      transform: none;
+      background: #FFA500;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-weight: bold;
+      color: black;
+      cursor: pointer;
+    }
+    .total-value {
+      margin-top: 10px;
+      font-size: 1.2em;
+    }
+    #pet-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #pet-modal .modal-content {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+    #pet-modal .modal-content div {
+      text-align: center;
+      cursor: pointer;
+      background: #222;
+      padding: 10px;
+      border-radius: 10px;
+      color: #FFA500;
+    }
+    #pet-modal .modal-content div:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
   <div class="trade-container">
-    <!-- PLAYER A -->
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
       <div class="pet-grid" id="grid-a"></div>
-      <div class="summary">Total: <span id="total-a">0</span></div>
+      <div class="total-value">Total: <span id="total-a">0</span></div>
     </div>
-
-    <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
       <div class="pet-grid" id="grid-b"></div>
-      <div class="summary">Total: <span id="total-b">0</span></div>
+      <div class="total-value">Total: <span id="total-b">0</span></div>
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="pet-modal" class="modal">
-    <div class="modal-content">
-      <input type="text" id="pet-search" placeholder="Search pets..." />
-      <div id="pet-options"></div>
-    </div>
+  <div id="pet-modal">
+    <div class="modal-content" id="pet-options"></div>
   </div>
-</div>
 
-<style>
-  body {
-    background-color: #000;
-    color: #FFA500;
-  }
-  .trade-container {
-    display: flex;
-    justify-content: space-around;
-    padding: 20px;
-    flex-wrap: wrap;
-  }
-  .player-section {
-    background: #111;
-    padding: 20px;
-    border-radius: 15px;
-    width: 45%;
-  }
-  .pet-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-  }
-  .pet-slot {
-    background: #222;
-    border-radius: 12px;
-    width: 100%;
-    padding: 30px 0;
-    text-align: center;
-    color: #FFA500;
-    position: relative;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 10px #FFA50044;
-  }
-  .pet-slot:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px #FFA500aa;
-  }
-  .pet-name {
-    font-weight: bold;
-    font-size: 18px;
-  }
-  .summary {
-    margin-top: 15px;
-    font-size: 18px;
-    font-weight: bold;
-  }
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+    const pets = [];
+    const playerData = { a: Array(10).fill(null), b: Array(10).fill(null) };
+    let selectedSlot = null;
 
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 10;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.85);
-  }
-  .modal-content {
-    background-color: #111;
-    margin: 5% auto;
-    padding: 20px;
-    width: 80%;
-    border-radius: 15px;
-    color: #FFA500;
-  }
-  #pet-search {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: none;
-    background: #222;
-    color: #FFA500;
-  }
-  #pet-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-  }
-  .pet-option {
-    background: #222;
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: transform 0.2s;
-  }
-  .pet-option:hover {
-    background: #333;
-    transform: scale(1.03);
-  }
+    function fetchSheetData() {
+      fetch(sheetUrl)
+        .then(res => res.text())
+        .then(csv => {
+          const rows = csv.split("\n").slice(1);
+          rows.forEach(row => {
+            const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+            if (!matches || matches.length < 2) return;
+            const name = matches[0].replace(/^"|"$/g, '').trim();
+            const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
+            const image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+            pets.push({ name, value, image });
+          });
+          renderPetModal();
+        });
+    }
 
-  .remove-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(255, 69, 58, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
-    cursor: pointer;
-    z-index: 2;
-    transition: background 0.2s;
-  }
-  .remove-btn:hover {
-    background: red;
-  }
-</style>
-
-<script>
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
-  let pets = [];
-  let activeBox = null;
-
-  function fetchSheetData() {
-    fetch(sheetUrl)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.split("\n").slice(1);
-        pets = rows.map(row => {
-          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 2) return null;
-          const name = matches[0].replace(/^"|"$/g, '').trim();
-          const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
-          image = image.replace(/\s/g, "");
-          return { name, value, image };
-        }).filter(p => p && p.name);
-        buildPetGrids();
+    function renderPetModal() {
+      const container = document.getElementById("pet-options");
+      pets.forEach(pet => {
+        const div = document.createElement("div");
+        div.innerHTML = `<div>${pet.name}</div>`;
+        div.onclick = () => {
+          if (!selectedSlot) return;
+          const [side, index] = selectedSlot.split("-");
+          playerData[side][index] = pet;
+          updateGrids();
+          closeModal();
+        };
+        container.appendChild(div);
       });
-  }
+    }
 
-  function buildPetGrids() {
-    ['a', 'b'].forEach(side => {
-      const grid = document.getElementById(`grid-${side}`);
-      for (let i = 0; i < 10; i++) {
-        const box = document.createElement("div");
-        box.className = "pet-slot";
-        box.innerHTML = `<span class="pet-name">+</span>`;
-        box.onclick = () => openModal(box, side);
-        grid.appendChild(box);
-      }
-    });
-  }
+    function openModal(slotId) {
+      selectedSlot = slotId;
+      document.getElementById("pet-modal").style.display = "flex";
+    }
 
-  function openModal(box, side) {
-    activeBox = box;
-    const modal = document.getElementById("pet-modal");
-    modal.style.display = "block";
-    populateModal();
-  }
+    function closeModal() {
+      selectedSlot = null;
+      document.getElementById("pet-modal").style.display = "none";
+    }
 
-  function closeModal() {
-    document.getElementById("pet-modal").style.display = "none";
-    document.getElementById("pet-search").value = "";
-  }
+    function updateGrids() {
+      ["a", "b"].forEach(side => {
+        const grid = document.getElementById(`grid-${side}`);
+        grid.innerHTML = "";
+        playerData[side].forEach((pet, i) => {
+          const box = document.createElement("div");
+          box.className = "pet-slot";
+          box.id = `${side}-${i}`;
+          box.onclick = () => { if (!pet) openModal(`${side}-${i}`); };
 
-  function populateModal() {
-    const container = document.getElementById("pet-options");
-    const searchQuery = document.getElementById("pet-search").value.toLowerCase();
-    container.innerHTML = "";
-    pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
-      const div = document.createElement("div");
-      div.className = "pet-option";
-      div.innerHTML = `
-        <div><strong>${pet.name}</strong></div>
-        <div>${pet.value}</div>
-      `;
-      div.onclick = () => selectPet(pet);
-      container.appendChild(div);
-    });
-  }
-
-  function selectPet(pet) {
-    if (!activeBox) return;
-    activeBox.innerHTML = `
-      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
-      <button class="remove-btn" onclick="removePet(this)">✖</button>
-    `;
-    activeBox.setAttribute("data-value", pet.value);
-    updateTotals();
-    closeModal();
-  }
-
-  function removePet(event, button) {
-  event.stopPropagation(); // Prevents box click from firing
-  const box = button.closest(".pet-slot");
-  box.innerHTML = `
-  <img src="${pet.image}" alt="${pet.name}">
-  <span class="pet-name">${pet.name}</span>
-  <button class="remove-btn" onclick="removePet(event, this)">✖</button>
-`;
-  box.removeAttribute("data-value");
-  updateTotals();
-}
-
-
-  function updateTotals() {
-    ['a', 'b'].forEach(side => {
-      const grid = document.getElementById(`grid-${side}`);
-      let total = 0;
-      grid.querySelectorAll(".pet-slot").forEach(slot => {
-        const val = parseFloat(slot.getAttribute("data-value"));
-        if (!isNaN(val)) total += val;
+          if (pet) {
+            box.innerHTML = `
+              <img src="${pet.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${pet.name}">
+              <span class="pet-name">${pet.name}</span>
+              <button class="remove-btn" onclick="removePet(event, this)">✖</button>
+            `;
+          } else {
+            box.innerHTML = `<span class="pet-name">+</span>`;
+          }
+          grid.appendChild(box);
+        });
+        updateTotals();
       });
-      document.getElementById(`total-${side}`).textContent = total;
-    });
-  }
+    }
 
-  document.getElementById("pet-search").addEventListener("input", populateModal);
-  window.onclick = function(e) {
-    if (e.target == document.getElementById("pet-modal")) closeModal();
-  }
+    function removePet(event, btn) {
+      event.stopPropagation();
+      const box = btn.closest(".pet-slot");
+      const [side, index] = box.id.split("-");
+      playerData[side][index] = null;
+      updateGrids();
+    }
 
-  fetchSheetData();
-</script>
+    function updateTotals() {
+      ["a", "b"].forEach(side => {
+        const total = playerData[side].reduce((sum, pet) => sum + (pet ? pet.value : 0), 0);
+        document.getElementById(`total-${side}`).textContent = total;
+      });
+    }
+
+    fetchSheetData();
+    updateGrids();
+  </script>
+</body>
+</html>
