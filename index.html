@@ -3,24 +3,23 @@
     <!-- PLAYER A -->
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
-      <div class="pet-boxes" id="boxes-a"></div>
-      <div class="total">Total: <span id="total-a">0</span></div>
+      <div class="pet-grid" id="grid-a"></div>
+      <div class="summary">Total: <span id="total-a">0</span></div>
     </div>
 
     <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
-      <div class="pet-boxes" id="boxes-b"></div>
-      <div class="total">Total: <span id="total-b">0</span></div>
+      <div class="pet-grid" id="grid-b"></div>
+      <div class="summary">Total: <span id="total-b">0</span></div>
     </div>
   </div>
 
-  <!-- Popup Modal -->
-  <div class="pet-modal" id="pet-modal">
+  <!-- Modal -->
+  <div id="pet-modal" class="modal">
     <div class="modal-content">
-      <input type="text" id="modal-search" placeholder="Search for pet..." />
-      <div class="pet-list" id="pet-list"></div>
-      <button class="close-btn" onclick="closeModal()">Close</button>
+      <input type="text" id="pet-search" placeholder="Search pets..." />
+      <div id="pet-options"></div>
     </div>
   </div>
 </div>
@@ -34,233 +33,209 @@
     display: flex;
     justify-content: space-around;
     padding: 20px;
+    flex-wrap: wrap;
   }
   .player-section {
     background: #111;
     padding: 20px;
     border-radius: 15px;
     width: 45%;
-    position: relative;
   }
-  .pet-boxes {
-    display: flex;
-    flex-wrap: wrap;
+  .pet-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
   }
   .pet-slot {
-    width: calc(50% - 10px);
-    height: 60px;
     background: #222;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    width: 100%;
+    padding: 30px 0;
+    text-align: center;
+    color: #FFA500;
     position: relative;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 8px #000;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 10px #FFA50044;
   }
   .pet-slot:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 12px 4px #FFA500aa;
+    box-shadow: 0 0 20px #FFA500aa;
   }
-  .pet-slot img {
-    height: 40px;
-    width: 40px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-  .remove-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #FFA500;
-    color: black;
-    font-weight: bold;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .total {
-    margin-top: 15px;
+  .pet-name {
     font-weight: bold;
     font-size: 18px;
   }
+  .summary {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+  }
 
-  /* Modal styles */
-  .pet-modal {
+  .modal {
     display: none;
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.85);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.85);
   }
   .modal-content {
-    background: #111;
+    background-color: #111;
+    margin: 5% auto;
     padding: 20px;
-    border-radius: 15px;
     width: 80%;
-    max-height: 80%;
-    overflow-y: auto;
-    text-align: center;
+    border-radius: 15px;
+    color: #FFA500;
   }
-  #modal-search {
-    width: 90%;
+  #pet-search {
+    width: 100%;
     padding: 10px;
     margin-bottom: 15px;
-    border-radius: 25px;
+    border-radius: 8px;
     border: none;
-    outline: none;
     background: #222;
     color: #FFA500;
-    font-size: 16px;
   }
-  .pet-list {
-    display: flex;
-    flex-wrap: wrap;
+  #pet-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
-    justify-content: center;
   }
-  .pet-item {
-    width: 160px;
+  .pet-option {
     background: #222;
-    border-radius: 10px;
     padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-  .pet-item:hover {
-    transform: scale(1.05);
-    background-color: #333;
-  }
-  .pet-item img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #FFA500;
-    margin-bottom: 5px;
-  }
-  .close-btn {
-    margin-top: 15px;
-    padding: 8px 16px;
-    background: #FFA500;
-    color: black;
-    font-weight: bold;
-    border: none;
     border-radius: 10px;
     cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .pet-option:hover {
+    background: #333;
+    transform: scale(1.03);
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 69, 58, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.2s;
+  }
+  .remove-btn:hover {
+    background: red;
   }
 </style>
 
 <script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+  let pets = [];
+  let activeBox = null;
 
-let pets = [];
-const playerPets = { a: Array(10).fill(null), b: Array(10).fill(null) };
-let currentSide = null;
-let currentIndex = null;
+  function fetchSheetData() {
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.split("\n").slice(1);
+        pets = rows.map(row => {
+          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+          if (!matches || matches.length < 2) return null;
+          const name = matches[0].replace(/^"|"$/g, '').trim();
+          const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
+          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+          image = image.replace(/\s/g, "");
+          return { name, value, image };
+        }).filter(p => p && p.name);
+        buildPetGrids();
+      });
+  }
 
-function fetchSheetData() {
-  fetch(sheetUrl)
-    .then(res => res.text())
-    .then(csv => {
-      const rows = csv.split("\n").slice(1);
-      pets = rows.map(row => {
-        const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        if (!matches || matches.length < 2) return null;
-        const name = matches[0]?.replace(/^"|"$/g, '').trim();
-        const value = parseFloat(matches[1]?.replace(/^"|"$/g, '').trim()) || 0;
-        let image = matches[2] ? matches[2].replace(/\s/g, '') : "";
-        return { name, value, image };
-      }).filter(p => p && p.name && !isNaN(p.value));
-      updateUI();
-    });
-}
-
-function updateUI() {
-  ['a', 'b'].forEach(side => {
-    const container = document.getElementById(`boxes-${side}`);
-    container.innerHTML = "";
-    playerPets[side].forEach((pet, index) => {
-      const div = document.createElement("div");
-      div.className = "pet-slot";
-      div.onclick = (e) => {
-        if (pet) {
-          if (e.target.classList.contains('remove-btn')) return;
-          removePet(side, index);
-        } else {
-          openModal(side, index);
-        }
-      };
-
-      if (pet) {
-        div.innerHTML = `
-          <img src="${pet.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${pet.name}">
-          <div>${pet.name}<br><small>${pet.value}</small></div>
-          <button class="remove-btn" onclick="removePet('${side}', ${index}); event.stopPropagation();">×</button>
-        `;
-      } else {
-        div.textContent = "+";
-        div.style.fontSize = "24px";
-        div.style.color = "#FFA500";
+  function buildPetGrids() {
+    ['a', 'b'].forEach(side => {
+      const grid = document.getElementById(`grid-${side}`);
+      for (let i = 0; i < 10; i++) {
+        const box = document.createElement("div");
+        box.className = "pet-slot";
+        box.innerHTML = `<span class="pet-name">+</span>`;
+        box.onclick = () => openModal(box, side);
+        grid.appendChild(box);
       }
+    });
+  }
 
+  function openModal(box, side) {
+    activeBox = box;
+    const modal = document.getElementById("pet-modal");
+    modal.style.display = "block";
+    populateModal();
+  }
+
+  function closeModal() {
+    document.getElementById("pet-modal").style.display = "none";
+    document.getElementById("pet-search").value = "";
+  }
+
+  function populateModal() {
+    const container = document.getElementById("pet-options");
+    const searchQuery = document.getElementById("pet-search").value.toLowerCase();
+    container.innerHTML = "";
+    pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
+      const div = document.createElement("div");
+      div.className = "pet-option";
+      div.innerHTML = `
+        <div><strong>${pet.name}</strong></div>
+        <div>${pet.value}</div>
+      `;
+      div.onclick = () => selectPet(pet);
       container.appendChild(div);
     });
+  }
 
-    const total = playerPets[side].reduce((sum, p) => sum + (p ? p.value : 0), 0);
-    document.getElementById(`total-${side}`).textContent = total;
-  });
-}
-
-function openModal(side, index) {
-  currentSide = side;
-  currentIndex = index;
-  document.getElementById("modal-search").value = "";
-  filterPets();
-  document.getElementById("pet-modal").style.display = "flex";
-}
-
-function closeModal() {
-  document.getElementById("pet-modal").style.display = "none";
-}
-
-function filterPets() {
-  const search = document.getElementById("modal-search").value.toLowerCase();
-  const list = document.getElementById("pet-list");
-  list.innerHTML = "";
-
-  pets.filter(p => p.name.toLowerCase().includes(search)).forEach(p => {
-    const item = document.createElement("div");
-    item.className = "pet-item";
-    item.innerHTML = `
-      <img src="${p.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${p.name}">
-      <div><strong>${p.name}</strong></div>
-      <div>${p.value}</div>
+  function selectPet(pet) {
+    if (!activeBox) return;
+    activeBox.innerHTML = `
+      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+      <button class="remove-btn" onclick="removePet(this)">✖</button>
     `;
-    item.onclick = () => {
-      playerPets[currentSide][currentIndex] = p;
-      closeModal();
-      updateUI();
-    };
-    list.appendChild(item);
-  });
-}
+    activeBox.setAttribute("data-value", pet.value);
+    updateTotals();
+    closeModal();
+  }
 
-function removePet(side, index) {
-  playerPets[side][index] = null;
-  updateUI();
-}
+  function removePet(button) {
+    const box = button.closest(".pet-slot");
+    box.innerHTML = `<span class="pet-name">+</span>`;
+    box.removeAttribute("data-value");
+    updateTotals();
+  }
 
-document.getElementById("modal-search").addEventListener("input", filterPets);
+  function updateTotals() {
+    ['a', 'b'].forEach(side => {
+      const grid = document.getElementById(`grid-${side}`);
+      let total = 0;
+      grid.querySelectorAll(".pet-slot").forEach(slot => {
+        const val = parseFloat(slot.getAttribute("data-value"));
+        if (!isNaN(val)) total += val;
+      });
+      document.getElementById(`total-${side}`).textContent = total;
+    });
+  }
 
-fetchSheetData();
+  document.getElementById("pet-search").addEventListener("input", populateModal);
+  window.onclick = function(e) {
+    if (e.target == document.getElementById("pet-modal")) closeModal();
+  }
+
+  fetchSheetData();
 </script>
