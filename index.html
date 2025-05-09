@@ -27,9 +27,8 @@
   <!-- Variant Modal -->
   <div id="variant-modal" class="modal">
     <div class="modal-content">
-      <h3>Select Variant</h3>
       <div id="variant-options"></div>
-      <button class="close-btn" onclick="closeVariantModal()">Cancel</button>
+      <button class="close-btn" onclick="closeVariantModal()">Close</button>
     </div>
   </div>
 </div>
@@ -135,17 +134,24 @@
     cursor: pointer;
     transition: transform 0.2s;
     margin: 5px;
+    color: #FFA500;
+    text-align: center;
   }
   .variant-option:hover {
     background: #333;
     transform: scale(1.05);
   }
-  #variant-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-  }
+
+  .variant-1 { background-color: #FF6347; } /* Tomato */
+  .variant-2 { background-color: #FF4500; } /* Orange Red */
+  .variant-3 { background-color: #32CD32; } /* Lime Green */
+  .variant-4 { background-color: #1E90FF; } /* Dodger Blue */
+  .variant-5 { background-color: #8A2BE2; } /* Blue Violet */
+  .variant-6 { background-color: #FFD700; } /* Gold */
+  .variant-7 { background-color: #FF1493; } /* Deep Pink */
+  .variant-8 { background-color: #FF8C00; } /* Dark Orange */
+  .variant-9 { background-color: #20B2AA; } /* Light Sea Green */
+  .variant-10 { background-color: #C71585; } /* Medium Violet Red */
 
   .remove-btn {
     position: absolute;
@@ -196,8 +202,7 @@
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
           let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
-          const variants = matches.slice(3).map(v => v.replace(/^"|"$/g, '').trim()).filter(Boolean);
-          return { name, value, image, variants };
+          return { name, value, image };
         }).filter(p => p && p.name);
         buildPetGrids();
       });
@@ -235,7 +240,10 @@
     pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
       const div = document.createElement("div");
       div.className = "pet-option";
-      div.innerHTML = `<div><strong>${pet.name}</strong></div><div>${pet.value}</div>`;
+      div.innerHTML = ` 
+        <div><strong>${pet.name}</strong></div>
+        <div>${pet.value}</div>
+      `;
       div.onclick = () => selectPet(pet);
       container.appendChild(div);
     });
@@ -243,43 +251,15 @@
 
   function selectPet(pet) {
     selectedPet = pet;
-    if (pet.variants && pet.variants.length > 0) {
-      showVariantModal(pet.variants);
-    } else {
-      assignPet(pet, null);
-    }
-    closeModal();
-  }
-
-  function showVariantModal(variants) {
-    const container = document.getElementById("variant-options");
-    container.innerHTML = "";
-    variants.forEach(variant => {
-      const div = document.createElement("div");
-      div.className = "variant-option";
-      div.textContent = variant;
-      div.onclick = () => {
-        assignPet(selectedPet, variant);
-        closeVariantModal();
-      };
-      container.appendChild(div);
-    });
-    document.getElementById("variant-modal").style.display = "block";
-  }
-
-  function closeVariantModal() {
-    document.getElementById("variant-modal").style.display = "none";
-  }
-
-  function assignPet(pet, variant) {
     if (!activeBox) return;
-    const label = variant ? `${pet.name} (${variant})` : pet.name;
     activeBox.innerHTML = ` 
-      <div class="pet-name">${label}<br><small>${pet.value}</small></div>
+      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
       <button class="remove-btn" onclick="removePet(this, event)">✖</button>
     `;
     activeBox.setAttribute("data-value", pet.value);
     updateTotals();
+    closeModal();
+    showVariantModal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); // Show the variants modal after selecting the pet
   }
 
   function removePet(button, event) {
@@ -300,6 +280,38 @@
       });
       document.getElementById(`total-${side}`).textContent = total;
     });
+  }
+
+  function showVariantModal(variantValues) {
+    const container = document.getElementById("variant-options");
+    container.innerHTML = "";
+
+    variantValues.forEach((variant, index) => {
+      const div = document.createElement("div");
+      div.className = `variant-option variant-${index + 1}`; // Add specific color class
+      div.textContent = variant; // Display only the value of the variant
+      div.onclick = () => {
+        assignPet(selectedPet, variant); // Assign selected pet with the chosen variant
+        closeVariantModal();
+      };
+      container.appendChild(div);
+    });
+
+    document.getElementById("variant-modal").style.display = "block";
+  }
+
+  function closeVariantModal() {
+    document.getElementById("variant-modal").style.display = "none";
+  }
+
+  function assignPet(pet, variant) {
+    // Assign the selected variant to the pet and add to the slot
+    activeBox.innerHTML = ` 
+      <div class="pet-name">${pet.name} (Variant ${variant})<br><small>${pet.value}</small></div>
+      <button class="remove-btn" onclick="removePet(this, event)">✖</button>
+    `;
+    activeBox.setAttribute("data-value", pet.value * variant); // This is where you apply any multiplier or effect for the variant
+    updateTotals();
   }
 
   document.getElementById("pet-search").addEventListener("input", populateModal);
