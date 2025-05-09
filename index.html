@@ -3,63 +3,39 @@
     <!-- PLAYER A -->
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
-      <input type="text" placeholder="Search for pet..." class="pet-search" id="search-a">
-      <div class="suggestions" id="suggestions-a"></div>
-      <div class="pet-summary" id="summary-a"></div>
+      <div class="pet-box" id="box-a1" onclick="openModal('a', 1)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-a2" onclick="openModal('a', 2)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-a3" onclick="openModal('a', 3)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-a4" onclick="openModal('a', 4)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-a5" onclick="openModal('a', 5)"><span class="plus">+</span></div>
+
       <div class="summary">
         Total: <span id="total-a">0</span>
         <button class="reset-btn" onclick="resetPlayer('a')">Reset</button>
-      </div>
-      <!-- Pet selection grid -->
-      <div class="pet-grid" id="pet-grid-a">
-        <!-- 10 empty slots for player A -->
-        <div class="slot" onclick="openPetModal('a', 0)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 1)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 2)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 3)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 4)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 5)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 6)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 7)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 8)">＋</div>
-        <div class="slot" onclick="openPetModal('a', 9)">＋</div>
       </div>
     </div>
 
     <!-- PLAYER B -->
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
-      <input type="text" placeholder="Search for pet..." class="pet-search" id="search-b">
-      <div class="suggestions" id="suggestions-b"></div>
-      <div class="pet-summary" id="summary-b"></div>
+      <div class="pet-box" id="box-b1" onclick="openModal('b', 1)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-b2" onclick="openModal('b', 2)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-b3" onclick="openModal('b', 3)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-b4" onclick="openModal('b', 4)"><span class="plus">+</span></div>
+      <div class="pet-box" id="box-b5" onclick="openModal('b', 5)"><span class="plus">+</span></div>
+
       <div class="summary">
         Total: <span id="total-b">0</span>
         <button class="reset-btn" onclick="resetPlayer('b')">Reset</button>
       </div>
-      <!-- Pet selection grid -->
-      <div class="pet-grid" id="pet-grid-b">
-        <!-- 10 empty slots for player B -->
-        <div class="slot" onclick="openPetModal('b', 0)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 1)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 2)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 3)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 4)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 5)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 6)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 7)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 8)">＋</div>
-        <div class="slot" onclick="openPetModal('b', 9)">＋</div>
-      </div>
     </div>
   </div>
 
-  <!-- Modal for pet selection -->
+  <!-- Modal to select pet -->
   <div id="pet-modal" class="modal">
     <div class="modal-content">
-      <h3>Select a Pet</h3>
-      <input type="text" id="modal-search" placeholder="Search for a pet..." class="pet-search">
-      <div class="pet-list" id="pet-list"></div>
-      <button onclick="closePetModal()">Close</button>
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <div id="pet-options"></div>
     </div>
   </div>
 </div>
@@ -70,63 +46,46 @@
     background-color: #000;
     color: #FFA500;
   }
+
   .trade-container {
     display: flex;
     justify-content: space-around;
     padding: 20px;
   }
+
   .player-section {
     background: #111;
     padding: 20px;
     border-radius: 15px;
     width: 45%;
-  }
-  .pet-search {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 25px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: #222;
-    color: #FFA500;
-  }
-  .suggestions div {
-    background: #222;
-    margin: 5px 0;
-    padding: 8px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-  .pet-card {
-    background: #222;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     position: relative;
   }
-  .pet-card img {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    margin-right: 10px;
-    border-radius: 50%;
-    border: 2px solid #FFA500;
-  }
-  .quantity-controls button {
-    background: #FFA500;
-    border: none;
-    color: black;
-    font-weight: bold;
-    padding: 5px 10px;
-    margin: 0 2px;
-    border-radius: 5px;
+
+  .pet-box {
+    background: #222;
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    display: inline-block;
+    border-radius: 15px;
+    text-align: center;
+    line-height: 100px;
+    font-size: 30px;
+    color: #FFA500;
     cursor: pointer;
+    position: relative;
   }
+
+  .plus {
+    font-size: 40px;
+    font-weight: bold;
+  }
+
+  .summary {
+    margin-top: 10px;
+    color: #FFA500;
+  }
+
   .reset-btn {
     background: #FFA500;
     border: none;
@@ -138,135 +97,131 @@
     font-weight: bold;
   }
 
-  /* Pet grid styling */
-  .pet-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-  }
-  .slot {
-    width: 80px;
-    height: 80px;
-    background: #222;
-    border-radius: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #FFA500;
-    cursor: pointer;
-    font-size: 36px;
-    transition: background 0.3s;
-  }
-  .slot:hover {
-    background: #FFA500;
-    color: #000;
-  }
-
-  /* Modal for selecting pets */
+  /* Modal styling */
   .modal {
-    display: none;
+    display: none; /* Hidden by default */
     position: fixed;
-    top: 0;
+    z-index: 1;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
   }
+
   .modal-content {
-    background: #222;
+    background-color: #111;
+    margin: 15% auto;
     padding: 20px;
-    border-radius: 10px;
-    max-width: 600px;
+    border-radius: 15px;
     width: 80%;
+    position: relative;
   }
-  .pet-list {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+
+  .close-btn {
+    color: #FFA500;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
   }
-  .pet-item {
+
+  .pet-card {
+    background: #222;
     padding: 10px;
-    background: #444;
     border-radius: 10px;
+    margin: 10px;
+    display: inline-block;
+    width: 120px;
     text-align: center;
     cursor: pointer;
   }
-  .pet-item img {
-    width: 50px;
-    height: 50px;
+
+  .pet-card img {
+    width: 60px;
+    height: 60px;
     object-fit: cover;
+    margin-bottom: 10px;
     border-radius: 50%;
-    margin-bottom: 5px;
   }
 </style>
 
 <script>
-  let pets = []; // Pet list will be loaded from CSV
+  let pets = [];
   const playerData = { a: {}, b: {} };
-  let currentSide = '';  // Track which side (A or B) is selecting a pet
-  let currentSlot = null;  // Track which slot the player clicked
 
-  // Fetch pet data from CSV
-  function fetchPetData() {
-    // Fetch CSV file (replace with your CSV URL)
-    fetch("https://your-csv-url.com")
-      .then(response => response.text())
-      .then(data => {
-        // Parse CSV data
-        const rows = data.split("\n").slice(1);  // Skip header
+  function fetchSheetData() {
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.split("\n").slice(1); // Skip header
         pets = rows.map(row => {
-          const [name, value, image] = row.split(",");
-          return { name, value: parseFloat(value), image };
-        });
+          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+          if (!matches || matches.length < 2) return null;
+
+          const name = matches[0] ? matches[0].replace(/^"|"$/g, '').trim() : "";
+          const value = matches[1] ? parseFloat(matches[1].replace(/^"|"$/g, '').trim()) : 0;
+          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+
+          image = image.replace(/\s/g, ""); // Remove ALL spaces inside
+
+          return { name, value, image };
+        }).filter(p => p && p.name && !isNaN(p.value));
       });
   }
 
-  // Open modal for selecting a pet
-  function openPetModal(side, slotIndex) {
-    currentSide = side;
-    currentSlot = slotIndex;
-    document.getElementById('pet-modal').style.display = 'flex';
-    updatePetList();
-  }
+  function openModal(side, box) {
+    const modal = document.getElementById("pet-modal");
+    const petOptions = document.getElementById("pet-options");
 
-  // Close the pet selection modal
-  function closePetModal() {
-    document.getElementById('pet-modal').style.display = 'none';
-  }
-
-  // Update the pet list inside the modal
-  function updatePetList() {
-    const petList = document.getElementById('pet-list');
-    petList.innerHTML = '';  // Clear current list
+    // Clear previous options
+    petOptions.innerHTML = "";
 
     pets.forEach(pet => {
-      const petDiv = document.createElement('div');
-      petDiv.classList.add('pet-item');
-      petDiv.innerHTML = `
-        <img src="${pet.image}" alt="${pet.name}">
-        <div>${pet.name}</div>
-      `;
-      petDiv.onclick = () => {
-        addPetToSlot(pet);
-        closePetModal();
+      const petCard = document.createElement("div");
+      petCard.className = "pet-card";
+      petCard.onclick = () => {
+        addPet(side, box, pet);
+        closeModal();
       };
-      petList.appendChild(petDiv);
+
+      petCard.innerHTML = `
+        <img src="${pet.image || 'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'}" alt="${pet.name}">
+        <div><strong>${pet.name}</strong></div>
+      `;
+
+      petOptions.appendChild(petCard);
     });
+
+    modal.style.display = "block";
   }
 
-  // Add selected pet to the slot
-  function addPetToSlot(pet) {
-    const slot = document.getElementsByClassName('slot')[currentSlot];
-    slot.innerHTML = `<img src="${pet.image}" alt="${pet.name}">`;
-    playerData[currentSide][pet.name] = pet;
-    updateDisplay();
+  function closeModal() {
+    const modal = document.getElementById("pet-modal");
+    modal.style.display = "none";
   }
 
-  // Update the display after adding a pet
-  function updateDisplay() {
-    // Update the total display for both players
-    let totalA = 0, totalB = 0;
-    Object.values(playerData.a).forEach
+  function addPet(side, box, pet) {
+    playerData[side][box] = { ...pet };
+    updateDisplay(side);
+  }
+
+  function updateDisplay(side) {
+    let total = 0;
+    Object.values(playerData[side]).forEach(pet => {
+      total += pet.value;
+    });
+
+    document.getElementById(`total-${side}`).textContent = total;
+  }
+
+  function resetPlayer(side) {
+    playerData[side] = {};
+    updateDisplay(side);
+  }
+
+  fetchSheetData();
+</script>
