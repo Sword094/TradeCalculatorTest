@@ -4,9 +4,9 @@
     <div class="player-section" id="player-a">
       <h2>Player A</h2>
       <div class="pet-grid" id="grid-a"></div>
-      <div class="summary-row">
+      <div class="summary">
+        Total: <span id="total-a">0</span>
         <button class="reset-btn" onclick="resetSide('a')">Reset</button>
-        <div class="summary">Total: <span id="total-a">0</span></div>
       </div>
     </div>
 
@@ -14,9 +14,9 @@
     <div class="player-section" id="player-b">
       <h2>Player B</h2>
       <div class="pet-grid" id="grid-b"></div>
-      <div class="summary-row">
+      <div class="summary">
+        Total: <span id="total-b">0</span>
         <button class="reset-btn" onclick="resetSide('b')">Reset</button>
-        <div class="summary">Total: <span id="total-b">0</span></div>
       </div>
     </div>
   </div>
@@ -24,9 +24,9 @@
   <!-- Modal -->
   <div id="pet-modal" class="modal">
     <div class="modal-content">
-      <button class="close-modal" onclick="closeModal()">X</button>
       <input type="text" id="pet-search" placeholder="Search pets..." />
       <div id="pet-options"></div>
+      <button class="close-btn" onclick="closeModal()">Close</button>
     </div>
   </div>
 </div>
@@ -74,27 +74,26 @@
     font-size: 18px;
   }
   .summary {
+    margin-top: 15px;
     font-size: 18px;
     font-weight: bold;
-    text-align: right;
-  }
-  .summary-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
   }
   .reset-btn {
-    background-color: #333;
-    color: #FFA500;
-    border: 1px solid #FFA500;
-    padding: 5px 10px;
-    border-radius: 8px;
+    background: #ff4040;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-weight: bold;
+    border-radius: 5px;
     cursor: pointer;
   }
   .reset-btn:hover {
-    background-color: #444;
+    background: #d72c2c;
   }
+
   .modal {
     display: none;
     position: fixed;
@@ -113,17 +112,6 @@
     width: 80%;
     border-radius: 15px;
     color: #FFA500;
-    position: relative;
-  }
-  .close-modal {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: transparent;
-    color: #FFA500;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
   }
   #pet-search {
     width: 100%;
@@ -151,6 +139,7 @@
     background: #333;
     transform: scale(1.03);
   }
+
   .remove-btn {
     position: absolute;
     top: 5px;
@@ -169,131 +158,132 @@
   .remove-btn:hover {
     background: red;
   }
-  .pet-img {
-    max-width: 60px;
-    display: block;
-    margin: 0 auto 5px;
+
+  .close-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #FFA500;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
   }
 </style>
-
 <script>
-const petData = [
-  { name: "Example Pet", variants: {
-    normal: { value: 100, image: "https://example.com/example.png" },
-    shiny: { value: 150, image: "https://example.com/example_shiny.png" },
-    mythic: { value: 200, image: "https://example.com/example_mythic.png" },
-    shiny_mythic: { value: 300, image: "https://example.com/example_shiny_mythic.png" }
-  }}
-  // Add more pets here
-];
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
+  let pets = [];
+  let activeBox = null;
 
-const variantLabels = {
-  normal: "Normal",
-  shiny: "Shiny",
-  mythic: "Mythic",
-  shiny_mythic: "Shiny Mythic"
-};
+  function fetchSheetData() {
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.split("\n").slice(1);
+        pets = rows.map(row => {
+          const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+          if (!matches || matches.length < 2) return null;
+          const name = matches[0].replace(/^"|"$/g, '').trim();
+          const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
+          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+          image = image.replace(/\s/g, "");
+          return { name, value, image };
+        }).filter(p => p && p.name);
+        buildPetGrids();
+      });
+  }
 
-let activeBox = null;
-
-function buildPetGrids() {
-  ['a', 'b'].forEach(side => {
-    const grid = document.getElementById(`grid-${side}`);
-    for (let i = 0; i < 10; i++) {
-      const box = document.createElement("div");
-      box.className = "pet-slot";
-      box.innerHTML = `<span class="pet-name">+</span>`;
-      box.onclick = (e) => {
-        if (!e.target.classList.contains("remove-btn")) openModal(box, side);
-      };
-      grid.appendChild(box);
-    }
-  });
-}
-
-function openModal(box) {
-  activeBox = box;
-  document.getElementById("pet-modal").style.display = "block";
-  populateModal();
-}
-
-function closeModal() {
-  document.getElementById("pet-modal").style.display = "none";
-  document.getElementById("pet-search").value = "";
-}
-
-function populateModal() {
-  const container = document.getElementById("pet-options");
-  const searchQuery = document.getElementById("pet-search").value.toLowerCase();
-  container.innerHTML = "";
-  petData.forEach(pet => {
-    Object.entries(pet.variants).forEach(([variant, data]) => {
-      if (pet.name.toLowerCase().includes(searchQuery)) {
-        const div = document.createElement("div");
-        div.className = "pet-option";
-        div.onclick = () => selectPet(pet.name, variant, data);
-        div.innerHTML = `
-          <img class="pet-img" src="${data.image}" alt="${pet.name} ${variant}">
-          <div><strong>${pet.name}</strong></div>
-          <div>${variantLabels[variant]}</div>
-          <div>${data.value}</div>
-        `;
-        container.appendChild(div);
+  function buildPetGrids() {
+    ['a', 'b'].forEach(side => {
+      const grid = document.getElementById(`grid-${side}`);
+      for (let i = 0; i < 10; i++) {
+        const box = document.createElement("div");
+        box.className = "pet-slot";
+        box.innerHTML = `<span class="pet-name">+</span>`;
+        box.onclick = () => openModal(box, side);
+        grid.appendChild(box);
       }
     });
-  });
-}
+  }
 
-function selectPet(name, variant, data) {
+  function openModal(box, side) {
+    activeBox = box;
+    const modal = document.getElementById("pet-modal");
+    modal.style.display = "block";
+    populateModal();
+  }
+
+  function closeModal() {
+    document.getElementById("pet-modal").style.display = "none";
+    document.getElementById("pet-search").value = "";
+  }
+
+  function populateModal() {
+    const container = document.getElementById("pet-options");
+    const searchQuery = document.getElementById("pet-search").value.toLowerCase();
+    container.innerHTML = "";
+    pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
+      const div = document.createElement("div");
+      div.className = "pet-option";
+      div.innerHTML = ` 
+        <div><strong>${pet.name}</strong></div>
+        <div>${pet.value}</div>
+      `;
+      div.onclick = () => selectPet(pet);
+      container.appendChild(div);
+    });
+  }
+
+  function selectPet(pet) {
   if (!activeBox) return;
+  
+  // If there is an image URL, use it; otherwise, use a placeholder
+  const imageUrl = pet.image ? `<img src="${pet.image}" alt="${pet.name}" style="width: 100%; height: auto; border-radius: 10px;"/>` : '';
+  
   activeBox.innerHTML = `
-    <img class="pet-img" src="${data.image}" alt="${name}">
-    <div class="pet-name">${name}<br><small>${variantLabels[variant]}</small><br><small>${data.value}</small></div>
-    <button class="remove-btn" onclick="removePet(this)">\u2716</button>
+    ${imageUrl}
+    <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+    <button class="remove-btn" onclick="removePet(this, event)">✖</button>
   `;
-  activeBox.setAttribute("data-value", data.value);
+  activeBox.setAttribute("data-value", pet.value);
   updateTotals();
   closeModal();
 }
 
-function removePet(button) {
-  const box = button.closest(".pet-slot");
-  box.innerHTML = `<span class="pet-name">+</span>`;
-  box.removeAttribute("data-value");
-  updateTotals();
-}
 
-function updateTotals() {
-  ['a', 'b'].forEach(side => {
-    const grid = document.getElementById(`grid-${side}`);
-    let total = 0;
-    grid.querySelectorAll(".pet-slot").forEach(slot => {
-      const val = parseFloat(slot.getAttribute("data-value"));
-      if (!isNaN(val)) total += val;
-    });
-    document.getElementById(`total-${side}`).textContent = total;
-  });
-}
-
-function resetSide(side) {
-  const grid = document.getElementById(`grid-${side}`);
-  grid.innerHTML = "";
-  for (let i = 0; i < 10; i++) {
-    const box = document.createElement("div");
-    box.className = "pet-slot";
+  function removePet(button, event) {
+    event.stopPropagation(); // Prevent the modal from opening
+    const box = button.closest(".pet-slot");
     box.innerHTML = `<span class="pet-name">+</span>`;
-    box.onclick = (e) => {
-      if (!e.target.classList.contains("remove-btn")) openModal(box, side);
-    };
-    grid.appendChild(box);
+    box.removeAttribute("data-value");
+    updateTotals();
   }
-  updateTotals();
-}
 
-document.getElementById("pet-search").addEventListener("input", populateModal);
-window.onclick = function(e) {
-  if (e.target == document.getElementById("pet-modal")) closeModal();
-};
+  function resetSide(side) {
+    const grid = document.getElementById(`grid-${side}`);
+    grid.querySelectorAll(".pet-slot").forEach(slot => {
+      slot.innerHTML = `<span class="pet-name">+</span>`;
+      slot.removeAttribute("data-value");
+    });
+    updateTotals();
+  }
 
-buildPetGrids();
+  function updateTotals() {
+    ['a', 'b'].forEach(side => {
+      const grid = document.getElementById(`grid-${side}`);
+      let total = 0;
+      grid.querySelectorAll(".pet-slot").forEach(slot => {
+        const val = parseFloat(slot.getAttribute("data-value"));
+        if (!isNaN(val)) total += val;
+      });
+      document.getElementById(`total-${side}`).textContent = total;
+    });
+  }
+
+  document.getElementById("pet-search").addEventListener("input", populateModal);
+  window.onclick = function(e) {
+    if (e.target == document.getElementById("pet-modal")) closeModal();
+  }
+
+  fetchSheetData();
 </script>
