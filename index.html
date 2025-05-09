@@ -20,6 +20,7 @@
     <div class="modal-content">
       <input type="text" id="pet-search" placeholder="Search pets..." />
       <div id="pet-options"></div>
+      <button class="close-btn" onclick="closeModal()">Close</button>
     </div>
   </div>
 </div>
@@ -136,6 +137,17 @@
   .remove-btn:hover {
     background: red;
   }
+
+  .close-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #FFA500;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 </style>
 
 <script>
@@ -193,7 +205,7 @@
     pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
       const div = document.createElement("div");
       div.className = "pet-option";
-      div.innerHTML = `
+      div.innerHTML = ` 
         <div><strong>${pet.name}</strong></div>
         <div>${pet.value}</div>
       `;
@@ -204,7 +216,7 @@
 
   function selectPet(pet) {
     if (!activeBox) return;
-    activeBox.innerHTML = `
+    activeBox.innerHTML = ` 
       <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
       <button class="remove-btn" onclick="removePet(this)">✖</button>
     `;
