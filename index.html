@@ -142,17 +142,6 @@
     transform: scale(1.05);
   }
 
-  .variant-1 { background-color: #FF6347; } /* Tomato */
-  .variant-2 { background-color: #FF4500; } /* Orange Red */
-  .variant-3 { background-color: #32CD32; } /* Lime Green */
-  .variant-4 { background-color: #1E90FF; } /* Dodger Blue */
-  .variant-5 { background-color: #8A2BE2; } /* Blue Violet */
-  .variant-6 { background-color: #FFD700; } /* Gold */
-  .variant-7 { background-color: #FF1493; } /* Deep Pink */
-  .variant-8 { background-color: #FF8C00; } /* Dark Orange */
-  .variant-9 { background-color: #20B2AA; } /* Light Sea Green */
-  .variant-10 { background-color: #C71585; } /* Medium Violet Red */
-
   .remove-btn {
     position: absolute;
     top: 5px;
@@ -197,12 +186,16 @@
         const rows = csv.split("\n").slice(1);
         pets = rows.map(row => {
           const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 2) return null;
+          if (!matches || matches.length < 5) return null;
           const name = matches[0].replace(/^"|"$/g, '').trim();
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
-          let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
+          const normal = parseFloat(matches[2].replace(/^"|"$/g, '').trim()) || 0;
+          const shiny = parseFloat(matches[3].replace(/^"|"$/g, '').trim()) || 0;
+          const mythic = parseFloat(matches[4].replace(/^"|"$/g, '').trim()) || 0;
+          const shinyMythic = parseFloat(matches[5].replace(/^"|"$/g, '').trim()) || 0;
+          let image = matches[6] ? matches[6].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
-          return { name, value, image };
+          return { name, value, normal, shiny, mythic, shinyMythic, image };
         }).filter(p => p && p.name);
         buildPetGrids();
       });
@@ -259,7 +252,7 @@
     activeBox.setAttribute("data-value", pet.value);
     updateTotals();
     closeModal();
-    showVariantModal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); // Show the variants modal after selecting the pet
+    showVariantModal(pet); // Show the variants modal after selecting the pet
   }
 
   function removePet(button, event) {
@@ -282,16 +275,23 @@
     });
   }
 
-  function showVariantModal(variantValues) {
+  function showVariantModal(pet) {
     const container = document.getElementById("variant-options");
     container.innerHTML = "";
 
-    variantValues.forEach((variant, index) => {
+    const variants = [
+      { name: "Normal", value: pet.normal },
+      { name: "Shiny", value: pet.shiny },
+      { name: "Mythic", value: pet.mythic },
+      { name: "Shiny Mythic", value: pet.shinyMythic }
+    ];
+
+    variants.forEach(variant => {
       const div = document.createElement("div");
-      div.className = `variant-option variant-${index + 1}`; // Add specific color class
-      div.textContent = variant; // Display only the value of the variant
+      div.className = "variant-option";
+      div.textContent = `${variant.name}: ${variant.value}`;
       div.onclick = () => {
-        assignPet(selectedPet, variant); // Assign selected pet with the chosen variant
+        assignPetWithVariant(pet, variant);
         closeVariantModal();
       };
       container.appendChild(div);
@@ -304,13 +304,12 @@
     document.getElementById("variant-modal").style.display = "none";
   }
 
-  function assignPet(pet, variant) {
-    // Assign the selected variant to the pet and add to the slot
+  function assignPetWithVariant(pet, variant) {
     activeBox.innerHTML = ` 
-      <div class="pet-name">${pet.name} (Variant ${variant})<br><small>${pet.value}</small></div>
+      <div class="pet-name">${pet.name} (${variant.name})<br><small>${variant.value}</small></div>
       <button class="remove-btn" onclick="removePet(this, event)">✖</button>
     `;
-    activeBox.setAttribute("data-value", pet.value * variant); // This is where you apply any multiplier or effect for the variant
+    activeBox.setAttribute("data-value", variant.value);
     updateTotals();
   }
 
