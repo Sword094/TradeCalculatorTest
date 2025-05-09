@@ -213,12 +213,18 @@
     closeModal();
   }
 
-  function removePet(button) {
-    const box = button.closest(".pet-slot");
-    box.innerHTML = `<span class="pet-name">+</span>`;
-    box.removeAttribute("data-value");
-    updateTotals();
-  }
+  function removePet(event, button) {
+  event.stopPropagation(); // Prevents box click from firing
+  const box = button.closest(".pet-slot");
+  box.innerHTML = `
+  <img src="${pet.image}" alt="${pet.name}">
+  <span class="pet-name">${pet.name}</span>
+  <button class="remove-btn" onclick="removePet(event, this)">✖</button>
+`;
+  box.removeAttribute("data-value");
+  updateTotals();
+}
+
 
   function updateTotals() {
     ['a', 'b'].forEach(side => {
