@@ -184,13 +184,13 @@
         const rows = csv.split("\n").slice(1);
         pets = rows.map(row => {
           const matches = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-          if (!matches || matches.length < 2) return null;
+          if (!matches || matches.length < 7) return null;
           const name = matches[0].replace(/^"|"$/g, '').trim();
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
           let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
           
-          // Shifting the columns to the left (Normal in column 0, Shiny in column 1, etc.)
+          // Shift variant columns properly:
           const normal = parseFloat(matches[3]?.replace(/^"|"$/g, '').trim()) || 0;
           const shiny = parseFloat(matches[4]?.replace(/^"|"$/g, '').trim()) || 0;
           const mythic = parseFloat(matches[5]?.replace(/^"|"$/g, '').trim()) || 0;
