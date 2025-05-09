@@ -218,14 +218,15 @@
     if (!activeBox) return;
     activeBox.innerHTML = ` 
       <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
-      <button class="remove-btn" onclick="removePet(this)">✖</button>
+      <button class="remove-btn" onclick="removePet(this, event)">✖</button>
     `;
     activeBox.setAttribute("data-value", pet.value);
     updateTotals();
     closeModal();
   }
 
-  function removePet(button) {
+  function removePet(button, event) {
+    event.stopPropagation(); // Prevent the modal from opening
     const box = button.closest(".pet-slot");
     box.innerHTML = `<span class="pet-name">+</span>`;
     box.removeAttribute("data-value");
