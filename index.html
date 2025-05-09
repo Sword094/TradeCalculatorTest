@@ -15,12 +15,21 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Pet Modal -->
   <div id="pet-modal" class="modal">
     <div class="modal-content">
       <input type="text" id="pet-search" placeholder="Search pets..." />
       <div id="pet-options"></div>
       <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Variant Modal -->
+  <div id="variant-modal" class="modal">
+    <div class="modal-content">
+      <h3>Select Variant</h3>
+      <div id="variant-options"></div>
+      <button class="close-btn" onclick="closeVariantModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -119,6 +128,25 @@
     transform: scale(1.03);
   }
 
+  .variant-option {
+    background: #222;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin: 5px;
+  }
+  .variant-option:hover {
+    background: #333;
+    transform: scale(1.05);
+  }
+  #variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
   .remove-btn {
     position: absolute;
     top: 5px;
@@ -154,6 +182,7 @@
   const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0db3GrROkEmlUmjUelMK9tjtlKxuWqbjRqXlt5zII5cnHwFPbibA02SNd6KU0G2pT6MLbdb4yzr8l/pub?output=csv";
   let pets = [];
   let activeBox = null;
+  let selectedPet = null;
 
   function fetchSheetData() {
     fetch(sheetUrl)
@@ -167,7 +196,8 @@
           const value = parseFloat(matches[1].replace(/^"|"$/g, '').trim()) || 0;
           let image = matches[2] ? matches[2].replace(/^"|"$/g, '').trim() : "";
           image = image.replace(/\s/g, "");
-          return { name, value, image };
+          const variants = matches.slice(3).map(v => v.replace(/^"|"$/g, '').trim()).filter(Boolean);
+          return { name, value, image, variants };
         }).filter(p => p && p.name);
         buildPetGrids();
       });
@@ -205,24 +235,51 @@
     pets.filter(p => p.name.toLowerCase().includes(searchQuery)).forEach(pet => {
       const div = document.createElement("div");
       div.className = "pet-option";
-      div.innerHTML = ` 
-        <div><strong>${pet.name}</strong></div>
-        <div>${pet.value}</div>
-      `;
+      div.innerHTML = `<div><strong>${pet.name}</strong></div><div>${pet.value}</div>`;
       div.onclick = () => selectPet(pet);
       container.appendChild(div);
     });
   }
 
   function selectPet(pet) {
+    selectedPet = pet;
+    if (pet.variants && pet.variants.length > 0) {
+      showVariantModal(pet.variants);
+    } else {
+      assignPet(pet, null);
+    }
+    closeModal();
+  }
+
+  function showVariantModal(variants) {
+    const container = document.getElementById("variant-options");
+    container.innerHTML = "";
+    variants.forEach(variant => {
+      const div = document.createElement("div");
+      div.className = "variant-option";
+      div.textContent = variant;
+      div.onclick = () => {
+        assignPet(selectedPet, variant);
+        closeVariantModal();
+      };
+      container.appendChild(div);
+    });
+    document.getElementById("variant-modal").style.display = "block";
+  }
+
+  function closeVariantModal() {
+    document.getElementById("variant-modal").style.display = "none";
+  }
+
+  function assignPet(pet, variant) {
     if (!activeBox) return;
+    const label = variant ? `${pet.name} (${variant})` : pet.name;
     activeBox.innerHTML = ` 
-      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+      <div class="pet-name">${label}<br><small>${pet.value}</small></div>
       <button class="remove-btn" onclick="removePet(this, event)">✖</button>
     `;
     activeBox.setAttribute("data-value", pet.value);
     updateTotals();
-    closeModal();
   }
 
   function removePet(button, event) {
@@ -248,6 +305,7 @@
   document.getElementById("pet-search").addEventListener("input", populateModal);
   window.onclick = function(e) {
     if (e.target == document.getElementById("pet-modal")) closeModal();
+    if (e.target == document.getElementById("variant-modal")) closeVariantModal();
   }
 
   fetchSheetData();
