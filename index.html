@@ -235,15 +235,21 @@
   }
 
   function selectPet(pet) {
-    if (!activeBox) return;
-    activeBox.innerHTML = ` 
-      <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
-      <button class="remove-btn" onclick="removePet(this, event)">✖</button>
-    `;
-    activeBox.setAttribute("data-value", pet.value);
-    updateTotals();
-    closeModal();
-  }
+  if (!activeBox) return;
+  
+  // If there is an image URL, use it; otherwise, use a placeholder
+  const imageUrl = pet.image ? `<img src="${pet.image}" alt="${pet.name}" style="width: 100%; height: auto; border-radius: 10px;"/>` : '';
+  
+  activeBox.innerHTML = `
+    ${imageUrl}
+    <div class="pet-name">${pet.name}<br><small>${pet.value}</small></div>
+    <button class="remove-btn" onclick="removePet(this, event)">✖</button>
+  `;
+  activeBox.setAttribute("data-value", pet.value);
+  updateTotals();
+  closeModal();
+}
+
 
   function removePet(button, event) {
     event.stopPropagation(); // Prevent the modal from opening
